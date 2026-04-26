@@ -10,8 +10,15 @@ import '../../../maintenance/presentation/screens/add_maintenance_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final Vehicle vehicle;
+  final ThemeMode currentThemeMode;
+  final ValueChanged<ThemeMode> onThemeModeChanged;
 
-  const DashboardScreen({Key? key, required this.vehicle}) : super(key: key);
+  const DashboardScreen({
+    super.key,
+    required this.vehicle,
+    required this.currentThemeMode,
+    required this.onThemeModeChanged,
+  });
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -19,6 +26,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   List<Maintenance> _maintenanceList = [];
+  int _selectedTabIndex = 0;
 
   @override
   void initState() {
@@ -94,159 +102,621 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final completedMaintenance = _maintenanceList
-        .where((m) => m.status == MaintenanceStatus.done)
-        .toList();
-    final upcomingMaintenance = _maintenanceList
-        .where((m) => m.status == MaintenanceStatus.upcoming)
-        .toList();
+  List<Maintenance> get _completedMaintenance => _maintenanceList
+      .where((m) => m.status == MaintenanceStatus.done)
+      .toList();
 
-    final totalCost = completedMaintenance.fold<double>(
-      0,
-      (sum, item) => sum + item.cost,
-    );
+  List<Maintenance> get _upcomingMaintenance => _maintenanceList
+      .where((m) => m.status == MaintenanceStatus.upcoming)
+      .toList();
 
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.autoSurface,
-              AppColors.autoSurfaceElevated,
+  double get _totalCost =>
+      _completedMaintenance.fold<double>(0, (sum, item) => sum + item.cost);
+
+  double get _averageCost =>
+      _completedMaintenance.isEmpty ? 0 : _totalCost / _completedMaintenance.length;
+
+  double get _costPerKm {
+    if (widget.vehicle.currentMileage <= 0) return 0;
+    return _totalCost / widget.vehicle.currentMileage;
+  }
+
+  Map<String, int> get _maintenanceByType {
+    final map = <String, int>{};
+    for (final item in _completedMaintenance) {
+      map.update(item.type, (value) => value + 1, ifAbsent: () => 1);
+    }
+    return map;
+  }
+
+  List<Maintenance> get _aiSuggestions {
+    return _upcomingMaintenance.where((item) {
+      final remainingDays = item.date.difference(DateTime.now()).inDays;
+      return remainingDays <= 30;
+    }).toList();
+  }
+
+  void _showThemeModeSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const ListTile(
+                title: Text(
+                  'Apparence',
+                  style: TextStyle(fontWeight: FontWeight.w700),
+                ),
+                subtitle: Text('Choisir Clair, Sombre ou Systeme'),
+              ),
+              ListTile(
+                title: const Text('Mode clair'),
+                trailing: widget.currentThemeMode == ThemeMode.light
+                    ? const Icon(Icons.check, color: AppColors.autoAccent)
+                    : null,
+                onTap: () {
+                  widget.onThemeModeChanged(ThemeMode.light);
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                title: const Text('Mode sombre'),
+                trailing: widget.currentThemeMode == ThemeMode.dark
+                    ? const Icon(Icons.check, color: AppColors.autoAccent)
+                    : null,
+                onTap: () {
+                  widget.onThemeModeChanged(ThemeMode.dark);
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                title: const Text('Suivre l appareil'),
+                trailing: widget.currentThemeMode == ThemeMode.system
+                    ? const Icon(Icons.check, color: AppColors.autoAccent)
+                    : null,
+                onTap: () {
+                  widget.onThemeModeChanged(ThemeMode.system);
+                  Navigator.pop(context);
+                },
+              ),
+              const SizedBox(height: 12),
             ],
           ),
+        );
+      },
+    );
+  }
+
+  Widget _sectionTitle(String title, Color color) {
+    return Row(
+      children: [
+        Container(
+          width: 4,
+          height: 20,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(2),
+          ),
         ),
-        child: SafeArea(
-          child: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Mon Suivi',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.autoTextPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Carnet d\'entretien digital',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: AppColors.autoTextHint,
-                        ),
-                      ),
-                    ],
+        const SizedBox(width: 12),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: AppColors.autoTextPrimary,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAISuggestions() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.autoSurface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.autoBorder),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Text(
+                  'Suggestions IA',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.autoTextPrimary,
                   ),
                 ),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: VehicleCard(vehicle: widget.vehicle),
-                ),
-              ),
-              const SliverToBoxAdapter(child: SizedBox(height: 20)),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: QuickStats(
-                    totalMaintenance: completedMaintenance.length,
-                    totalCost: totalCost,
-                    upcomingCount: upcomingMaintenance.length,
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.autoWarning.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                ),
-              ),
-              const SliverToBoxAdapter(child: SizedBox(height: 24)),
-              if (upcomingMaintenance.isNotEmpty) ...[
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 4,
-                          height: 20,
-                          decoration: BoxDecoration(
-                            color: AppColors.autoAccent,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        const Text(
-                          'A venir',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.autoTextPrimary,
-                          ),
-                        ),
-                      ],
+                  child: const Text(
+                    'Orange',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.autoWarning,
                     ),
                   ),
                 ),
-                const SliverToBoxAdapter(child: SizedBox(height: 12)),
-                SliverToBoxAdapter(
-                  child: UpcomingMaintenance(maintenanceList: upcomingMaintenance),
-                ),
-                const SliverToBoxAdapter(child: SizedBox(height: 24)),
               ],
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
+            ),
+            const SizedBox(height: 12),
+            if (_aiSuggestions.isEmpty)
+              const Text(
+                'Aucune suggestion prioritaire pour le moment.',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.autoTextSecondary,
+                ),
+              )
+            else
+              ..._aiSuggestions.map((item) {
+                final days = item.date.difference(DateTime.now()).inDays;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
                   child: Row(
                     children: [
-                      Container(
-                        width: 4,
-                        height: 20,
-                        decoration: BoxDecoration(
-                          color: AppColors.autoSuccess,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
+                      const Icon(
+                        Icons.auto_awesome,
+                        size: 16,
+                        color: AppColors.autoWarning,
                       ),
-                      const SizedBox(width: 12),
-                      const Text(
-                        'Historique',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.autoTextPrimary,
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '${item.title} a prevoir dans $days jours',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: AppColors.autoTextPrimary,
+                          ),
                         ),
                       ),
                     ],
                   ),
+                );
+              }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHomeTab() {
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Mon Suivi Auto Moto',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.autoTextPrimary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Carnet d\'entretien digital',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: AppColors.autoTextHint,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: VehicleCard(vehicle: widget.vehicle),
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 20)),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: QuickStats(
+              totalMaintenance: _completedMaintenance.length,
+              totalCost: _totalCost,
+              upcomingCount: _upcomingMaintenance.length,
+            ),
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 20)),
+        const SliverToBoxAdapter(child: SizedBox(height: 8)),
+        SliverToBoxAdapter(child: _buildAISuggestions()),
+        const SliverToBoxAdapter(child: SizedBox(height: 24)),
+        if (_upcomingMaintenance.isNotEmpty) ...[
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: _sectionTitle('A venir', AppColors.autoAccent),
+            ),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 12)),
+          SliverToBoxAdapter(
+            child: UpcomingMaintenance(maintenanceList: _upcomingMaintenance),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
+        ],
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: _sectionTitle('Historique', AppColors.autoSuccess),
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 12)),
+        SliverToBoxAdapter(
+          child: MaintenanceHistory(maintenanceList: _completedMaintenance),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 100)),
+      ],
+    );
+  }
+
+  Widget _statCard(String title, String value, String subtitle, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.autoSurface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.autoBorder),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.autoAccent.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, size: 20, color: AppColors.autoAccent),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.autoTextHint,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.autoTextPrimary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.autoTextSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTypeDistribution() {
+    if (_maintenanceByType.isEmpty) {
+      return const Text(
+        'Pas encore assez de donnees pour afficher la repartition.',
+        style: TextStyle(
+          fontSize: 14,
+          color: AppColors.autoTextSecondary,
+        ),
+      );
+    }
+
+    final total = _completedMaintenance.length;
+    return Column(
+      children: _maintenanceByType.entries.map((entry) {
+        final percentage = (entry.value / total * 100).round();
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 110,
+                child: Text(
+                  entry.key,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: AppColors.autoTextPrimary,
+                  ),
                 ),
               ),
-              const SliverToBoxAdapter(child: SizedBox(height: 12)),
-              SliverToBoxAdapter(
-                child: MaintenanceHistory(maintenanceList: completedMaintenance),
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: LinearProgressIndicator(
+                    value: entry.value / total,
+                    minHeight: 10,
+                    backgroundColor: AppColors.autoBorder,
+                    valueColor:
+                        const AlwaysStoppedAnimation<Color>(AppColors.autoAccent),
+                  ),
+                ),
               ),
-              const SliverToBoxAdapter(child: SizedBox(height: 100)),
+              const SizedBox(width: 10),
+              Text(
+                '$percentage%',
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.autoTextSecondary,
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildStatsTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Statistiques',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w600,
+              color: AppColors.autoTextPrimary,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Vue des couts et tendances d\'entretien',
+            style: TextStyle(
+              fontSize: 14,
+              color: AppColors.autoTextSecondary,
+            ),
+          ),
+          const SizedBox(height: 20),
+          _statCard(
+            'Cout total',
+            '${_totalCost.toStringAsFixed(0)}EUR',
+            '${_completedMaintenance.length} entretiens realises',
+            Icons.euro,
+          ),
+          const SizedBox(height: 12),
+          _statCard(
+            'Cout / km',
+            '${_costPerKm.toStringAsFixed(4)} EUR/km',
+            'Moyenne: ${_averageCost.toStringAsFixed(0)}EUR par entretien',
+            Icons.speed,
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'Repartition par type',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: AppColors.autoTextPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.autoSurface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.autoBorder),
+            ),
+            child: _buildTypeDistribution(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _profileItem(
+    IconData icon,
+    String title,
+    String subtitle, {
+    VoidCallback? onTap,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: AppColors.autoSurface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.autoBorder),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              Icon(icon, color: AppColors.autoTextSecondary),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.autoTextPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.autoTextSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right, color: AppColors.autoTextHint),
             ],
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _addMaintenance,
-        backgroundColor: AppColors.autoAccent,
-        elevation: 4,
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text(
-          'Entretien',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
+    );
+  }
+
+  Widget _buildProfileTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Profil',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w600,
+              color: AppColors.autoTextPrimary,
+            ),
           ),
+          const SizedBox(height: 20),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.autoSurface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.autoBorder),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Infos vehicule',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.autoTextPrimary,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text('Plaque: ${widget.vehicle.plate}'),
+                Text('Modele: ${widget.vehicle.brand} ${widget.vehicle.model}'),
+                Text('Annee: ${widget.vehicle.year}'),
+                Text('Kilometrage: ${widget.vehicle.currentMileage} km'),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          const Text(
+            'Parametres',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppColors.autoTextPrimary,
+            ),
+          ),
+          const SizedBox(height: 10),
+          _profileItem(
+            Icons.palette_outlined,
+            'Apparence',
+            'Clair, Sombre ou Systeme',
+            onTap: _showThemeModeSheet,
+          ),
+          _profileItem(Icons.notifications, 'Notifications', 'Rappels et alertes'),
+          _profileItem(Icons.picture_as_pdf, 'Export PDF', 'Exporter le carnet'),
+          _profileItem(Icons.lock, 'Confidentialite', 'Droits et donnees'),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tabViews = [
+      _buildHomeTab(),
+      _buildStatsTab(),
+      _buildProfileTab(),
+    ];
+
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          color: AppColors.autoSurface,
         ),
+        child: SafeArea(child: tabViews[_selectedTabIndex]),
+      ),
+      floatingActionButton: _selectedTabIndex == 0
+          ? FloatingActionButton.extended(
+              onPressed: _addMaintenance,
+              backgroundColor: AppColors.autoAccent,
+              elevation: 4,
+              icon: const Icon(Icons.add, color: Colors.white),
+              label: const Text(
+                'Entretien',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            )
+          : null,
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _selectedTabIndex,
+        onDestinationSelected: (index) {
+          setState(() => _selectedTabIndex = index);
+        },
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: 'Accueil',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.bar_chart_outlined),
+            selectedIcon: Icon(Icons.bar_chart),
+            label: 'Stats',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: 'Profil',
+          ),
+        ],
       ),
     );
   }

@@ -2,21 +2,41 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
 enum ProgressVariant { minimal, expressive }
+enum VehicleIndicatorStyle { minimal, sport, suv, moto }
 
 class ProgressBar extends StatelessWidget {
   final int currentStep;
   final int totalSteps;
   final ProgressVariant variant;
+  final bool showVehicleIndicator;
+  final VehicleIndicatorStyle indicatorStyle;
 
   const ProgressBar({
     Key? key,
     required this.currentStep,
     required this.totalSteps,
     this.variant = ProgressVariant.minimal,
+    this.showVehicleIndicator = true,
+    this.indicatorStyle = VehicleIndicatorStyle.minimal,
   }) : super(key: key);
+
+  IconData _vehicleIcon() {
+    switch (indicatorStyle) {
+      case VehicleIndicatorStyle.sport:
+        return Icons.sports_motorsports;
+      case VehicleIndicatorStyle.suv:
+        return Icons.airport_shuttle;
+      case VehicleIndicatorStyle.moto:
+        return Icons.two_wheeler;
+      case VehicleIndicatorStyle.minimal:
+        return Icons.directions_car_filled;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final textHint = AppTheme.textHint(context);
+    final border = AppTheme.border(context);
     final progress = currentStep / totalSteps;
 
     if (variant == ProgressVariant.minimal) {
@@ -27,28 +47,70 @@ class ProgressBar extends StatelessWidget {
             children: [
               Text(
                 'Etape $currentStep/$totalSteps',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
-                  color: AppColors.autoTextHint,
+                  color: textHint,
                 ),
               ),
               Text(
                 '${(progress * 100).round()}%',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
-                  color: AppColors.autoTextHint,
+                  color: textHint,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(100),
-            child: LinearProgressIndicator(
-              value: progress,
-              backgroundColor: AppColors.autoBorder,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.autoAccent),
-              minHeight: 4,
+          SizedBox(
+            height: showVehicleIndicator ? 28 : 8,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final width = constraints.maxWidth;
+                final clampedProgress = progress.clamp(0.0, 1.0);
+                final indicatorSize = 18.0;
+                final indicatorLeft = (width - indicatorSize) * clampedProgress;
+
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned(
+                      top: showVehicleIndicator ? 14 : 2,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: border,
+                          borderRadius: BorderRadius.circular(100),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: showVehicleIndicator ? 14 : 2,
+                      left: 0,
+                      child: Container(
+                        width: width * clampedProgress,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          gradient: AppTheme.ctaGradient,
+                          borderRadius: BorderRadius.circular(100),
+                        ),
+                      ),
+                    ),
+                    if (showVehicleIndicator)
+                      Positioned(
+                        top: 0,
+                        left: indicatorLeft,
+                        child: Icon(
+                          _vehicleIcon(),
+                          size: indicatorSize,
+                          color: AppColors.autoAccentPurple,
+                        ),
+                      ),
+                  ],
+                );
+              },
             ),
           ),
         ],
@@ -65,7 +127,7 @@ class ProgressBar extends StatelessWidget {
             width: 32,
             height: 4,
             decoration: BoxDecoration(
-              color: isCompleted ? AppColors.autoSuccess : AppColors.autoBorder,
+              color: isCompleted ? AppColors.autoSuccess : border,
               borderRadius: BorderRadius.circular(2),
             ),
           );
@@ -83,7 +145,7 @@ class ProgressBar extends StatelessWidget {
                   ? AppColors.autoSuccess
                   : isActive
                       ? AppColors.autoAccent
-                      : AppColors.autoBorder,
+                      : border,
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
@@ -91,7 +153,7 @@ class ProgressBar extends StatelessWidget {
               '$stepNumber',
               style: TextStyle(
                 fontSize: 14,
-                color: isCompleted || isActive ? Colors.white : AppColors.autoTextHint,
+                color: isCompleted || isActive ? Colors.white : textHint,
                 fontWeight: FontWeight.w500,
               ),
             ),

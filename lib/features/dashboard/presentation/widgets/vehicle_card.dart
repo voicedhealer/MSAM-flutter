@@ -14,12 +14,12 @@ class VehicleCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
             AppColors.autoAccent,
-            AppColors.autoAccent.withValues(alpha: 0.8),
+            AppColors.autoAccentPurple,
           ],
         ),
         borderRadius: BorderRadius.circular(20),
@@ -36,6 +36,28 @@ class VehicleCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (vehicle.displayImageUrl != null) ...[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: Image.network(
+                    vehicle.displayImageUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      color: Colors.white.withValues(alpha: 0.18),
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.directions_car,
+                        color: Colors.white,
+                        size: 36,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
             Row(
               children: [
                 Container(

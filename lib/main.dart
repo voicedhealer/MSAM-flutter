@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'shared/theme/app_theme.dart';
 import 'shared/widgets/progress_bar.dart';
 import 'features/onboarding/presentation/screens/step1_license_plate.dart';
@@ -13,14 +15,63 @@ void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  ThemeMode _themeMode = ThemeMode.system;
+  static const _themeModeKey = 'theme_mode';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadThemeMode();
+  }
+
+  Future<void> _loadThemeMode() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedIndex = prefs.getInt(_themeModeKey);
+      if (savedIndex == null) return;
+      final modes = ThemeMode.values;
+      if (savedIndex < 0 || savedIndex >= modes.length) return;
+      if (!mounted) return;
+      setState(() {
+        _themeMode = modes[savedIndex];
+      });
+    } on MissingPluginException {
+      // Plugin non encore enregistre pendant un hot restart.
+      // Le mode retombe proprement sur ThemeMode.system.
+    }
+  }
+
+  void _updateThemeMode(ThemeMode mode) {
+    setState(() {
+      _themeMode = mode;
+    });
+    _persistThemeMode(mode);
+  }
+
+  Future<void> _persistThemeMode(ThemeMode mode) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt(_themeModeKey, mode.index);
+    } on MissingPluginException {
+      // Ignore temporairement tant que le plugin n'est pas disponible.
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Mon Suivi Auto Moto',
       theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: _themeMode,
       debugShowCheckedModeBanner: false,
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
@@ -30,13 +81,23 @@ class MyApp extends StatelessWidget {
       supportedLocales: const [
         Locale('fr', 'FR'),
       ],
-      home: const OnboardingFlow(),
+      home: OnboardingFlow(
+        currentThemeMode: _themeMode,
+        onThemeModeChanged: _updateThemeMode,
+      ),
     );
   }
 }
 
 class OnboardingFlow extends StatefulWidget {
-  const OnboardingFlow({Key? key}) : super(key: key);
+  final ThemeMode currentThemeMode;
+  final ValueChanged<ThemeMode> onThemeModeChanged;
+
+  const OnboardingFlow({
+    Key? key,
+    required this.currentThemeMode,
+    required this.onThemeModeChanged,
+  }) : super(key: key);
 
   @override
   State<OnboardingFlow> createState() => _OnboardingFlowState();
@@ -44,7 +105,6 @@ class OnboardingFlow extends StatefulWidget {
 
 class _OnboardingFlowState extends State<OnboardingFlow> {
   int _currentStep = 1;
-  bool _isExpressive = false;
   final int _totalSteps = 4;
 
   String _plate = '';
@@ -82,6 +142,8 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
       context,
       MaterialPageRoute(
         builder: (context) => DashboardScreen(
+          currentThemeMode: widget.currentThemeMode,
+          onThemeModeChanged: widget.onThemeModeChanged,
           vehicle: Vehicle(
             plate: _plate,
             brand: _vehicle?.brand ?? 'Peugeot',
@@ -90,16 +152,66 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
             currentMileage: 128500,
             type: 'car',
             fuelType: 'thermal',
+            catalogImageUrl: _vehicle?.catalogImageUrl,
+            userImageUrl: _vehicle?.userImageUrl,
           ),
         ),
       ),
     );
   }
 
-  void _toggleVariant() {
-    setState(() {
-      _isExpressive = !_isExpressive;
-    });
+  void _showThemeModeSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const ListTile(
+                title: Text(
+                  'Apparence',
+                  style: TextStyle(fontWeight: FontWeight.w700),
+                ),
+                subtitle: Text('Choisir Clair, Sombre ou Systeme'),
+              ),
+              ListTile(
+                title: const Text('Mode clair'),
+                trailing: widget.currentThemeMode == ThemeMode.light
+                    ? const Icon(Icons.check, color: AppColors.autoAccent)
+                    : null,
+                onTap: () {
+                  widget.onThemeModeChanged(ThemeMode.light);
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                title: const Text('Mode sombre'),
+                trailing: widget.currentThemeMode == ThemeMode.dark
+                    ? const Icon(Icons.check, color: AppColors.autoAccent)
+                    : null,
+                onTap: () {
+                  widget.onThemeModeChanged(ThemeMode.dark);
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                title: const Text('Suivre l appareil'),
+                trailing: widget.currentThemeMode == ThemeMode.system
+                    ? const Icon(Icons.check, color: AppColors.autoAccent)
+                    : null,
+                onTap: () {
+                  widget.onThemeModeChanged(ThemeMode.system);
+                  Navigator.pop(context);
+                },
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   void _resetOnboarding() {
@@ -113,16 +225,15 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
   }
 
   Widget _buildCompletionScreen() {
+    final surface = AppTheme.surface(context);
+    final surfaceElevated = AppTheme.surfaceElevated(context);
+    final textPrimary = AppTheme.textPrimary(context);
+    final textSecondary = AppTheme.textSecondary(context);
+    final border = AppTheme.border(context);
+
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.autoSurface,
-            AppColors.autoSurfaceElevated,
-          ],
-        ),
+        color: surface,
       ),
       child: SafeArea(
         child: Padding(
@@ -146,19 +257,19 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
               const SizedBox(height: 24),
               Text(
                 'Bienvenue, ${_identity?.firstName ?? ''} !',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 30,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.autoTextPrimary,
+                  color: textPrimary,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
               Text(
                 'Votre compte est pret. Commencez a suivre votre ${_vehicle?.brand ?? ''} ${_vehicle?.model ?? ''}.',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
-                  color: AppColors.autoTextSecondary,
+                  color: textSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -166,9 +277,9 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: AppColors.autoSurface,
+                  color: surfaceElevated,
                   borderRadius: BorderRadius.circular(AppTheme.radiusCard),
-                  border: Border.all(color: AppColors.autoBorder),
+                  border: Border.all(color: border),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.05),
@@ -182,40 +293,40 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'Vehicule',
                           style: TextStyle(
                             fontSize: 14,
-                            color: AppColors.autoTextSecondary,
+                            color: textSecondary,
                           ),
                         ),
                         Text(
                           _plate,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
-                            color: AppColors.autoTextPrimary,
+                            color: textPrimary,
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 12),
-                    Container(height: 1, color: AppColors.autoBorder),
+                    Container(height: 1, color: border),
                     const SizedBox(height: 12),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'Email',
                           style: TextStyle(
                             fontSize: 14,
-                            color: AppColors.autoTextSecondary,
+                            color: textSecondary,
                           ),
                         ),
                         Text(
                           _identity?.email ?? '',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
-                            color: AppColors.autoTextPrimary,
+                            color: textPrimary,
                           ),
                         ),
                       ],
@@ -245,28 +356,6 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
-              GestureDetector(
-                onTap: _toggleVariant,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.auto_awesome,
-                      size: 16,
-                      color: AppColors.autoTextHint,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Basculer en variante ${_isExpressive ? "A (Minimal)" : "B (Expressive)"}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: AppColors.autoTextHint,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ],
           ),
         ),
@@ -279,26 +368,26 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
       case 1:
         return Step1LicensePlate(
           onNext: _handleStep1Next,
-          isExpressive: _isExpressive,
+          isExpressive: false,
         );
       case 2:
         return Step2VehicleInfo(
           plate: _plate,
           onNext: _handleStep2Next,
           onBack: () => setState(() => _currentStep = 1),
-          isExpressive: _isExpressive,
+          isExpressive: false,
         );
       case 3:
         return Step3Identity(
           onNext: _handleStep3Next,
           onBack: () => setState(() => _currentStep = 2),
-          isExpressive: _isExpressive,
+          isExpressive: false,
         );
       case 4:
         return Step4Profile(
           onNext: _handleStep4Next,
           onBack: () => setState(() => _currentStep = 3),
-          isExpressive: _isExpressive,
+          isExpressive: false,
         );
       default:
         return const SizedBox();
@@ -307,6 +396,9 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
 
   @override
   Widget build(BuildContext context) {
+    final surface = AppTheme.surface(context);
+    final border = AppTheme.border(context);
+
     if (_isComplete) {
       return Scaffold(
         body: _buildCompletionScreen(),
@@ -316,14 +408,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.autoSurface,
-              AppColors.autoSurfaceElevated,
-            ],
-          ),
+          color: surface,
         ),
         child: SafeArea(
           child: Column(
@@ -331,74 +416,47 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 decoration: BoxDecoration(
-                  color: AppColors.autoSurface.withValues(alpha: 0.95),
+                  color: surface,
                   border: Border(
                     bottom: BorderSide(
-                      color: AppColors.autoBorder,
+                      color: border,
                       width: 1,
                     ),
                   ),
                 ),
-                child: ProgressBar(
-                  currentStep: _currentStep,
-                  totalSteps: _totalSteps,
-                  variant: _isExpressive ? ProgressVariant.expressive : ProgressVariant.minimal,
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        OutlinedButton.icon(
+                          onPressed: _showThemeModeSheet,
+                          icon: const Icon(Icons.brightness_6_outlined, size: 18),
+                          label: const Text('Apparence'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.autoAccent,
+                            side: const BorderSide(color: AppColors.autoAccent),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            visualDensity: VisualDensity.compact,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    ProgressBar(
+                      currentStep: _currentStep,
+                      totalSteps: _totalSteps,
+                      variant: ProgressVariant.minimal,
+                      showVehicleIndicator: true,
+                      indicatorStyle: VehicleIndicatorStyle.suv,
+                    ),
+                  ],
                 ),
               ),
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(24),
-                  child: _isExpressive
-                      ? Container(
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: AppColors.autoSurface,
-                            borderRadius: BorderRadius.circular(AppTheme.radiusCard),
-                            border: Border.all(color: AppColors.autoBorder),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: _buildCurrentStep(),
-                        )
-                      : _buildCurrentStep(),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.autoSurface.withValues(alpha: 0.95),
-                  border: Border(
-                    top: BorderSide(
-                      color: AppColors.autoBorder,
-                      width: 1,
-                    ),
-                  ),
-                ),
-                child: GestureDetector(
-                  onTap: _toggleVariant,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.auto_awesome,
-                        size: 16,
-                        color: AppColors.autoTextHint,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Variante ${_isExpressive ? "B (Expressive)" : "A (Minimal)"} - Cliquer pour basculer',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: AppColors.autoTextHint,
-                        ),
-                      ),
-                    ],
-                  ),
+                  child: _buildCurrentStep(),
                 ),
               ),
             ],

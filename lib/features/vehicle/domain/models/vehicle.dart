@@ -6,6 +6,8 @@ class Vehicle {
   final int currentMileage;
   final String type;
   final String fuelType;
+  final String? catalogImageUrl;
+  final String? userImageUrl;
 
   Vehicle({
     required this.plate,
@@ -15,5 +17,9 @@ class Vehicle {
     required this.currentMileage,
     required this.type,
     required this.fuelType,
+    this.catalogImageUrl,
+    this.userImageUrl,
   });
+
+  String? get displayImageUrl => userImageUrl ?? catalogImageUrl;
 }

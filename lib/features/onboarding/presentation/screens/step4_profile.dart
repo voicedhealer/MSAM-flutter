@@ -44,7 +44,9 @@ class _Step4ProfileState extends State<Step4Profile> {
     widget.onNext(null);
   }
 
-  Widget _buildUsageButton(String type) {
+  Widget _buildUsageButton(BuildContext context, String type) {
+    final textSecondary = AppTheme.textSecondary(context);
+    final border = AppTheme.border(context);
     final isSelected = _selectedUsage == type;
     return Expanded(
       child: GestureDetector(
@@ -58,7 +60,7 @@ class _Step4ProfileState extends State<Step4Profile> {
                 ? AppColors.autoAccent.withValues(alpha: 0.1)
                 : Colors.transparent,
             border: Border.all(
-              color: isSelected ? AppColors.autoAccent : AppColors.autoBorder,
+              color: isSelected ? AppColors.autoAccent : border,
               width: 2,
             ),
             borderRadius: BorderRadius.circular(AppTheme.radiusButton),
@@ -68,7 +70,7 @@ class _Step4ProfileState extends State<Step4Profile> {
             type,
             style: TextStyle(
               fontSize: 14,
-              color: isSelected ? AppColors.autoAccent : AppColors.autoTextSecondary,
+              color: isSelected ? AppColors.autoAccent : textSecondary,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -79,6 +81,12 @@ class _Step4ProfileState extends State<Step4Profile> {
 
   @override
   Widget build(BuildContext context) {
+    final textPrimary = AppTheme.textPrimary(context);
+    final textSecondary = AppTheme.textSecondary(context);
+    final textHint = AppTheme.textHint(context);
+    final surfaceElevated = AppTheme.surfaceElevated(context);
+    final border = AppTheme.border(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -100,20 +108,20 @@ class _Step4ProfileState extends State<Step4Profile> {
             ),
           ),
         ],
-        const Text(
+        Text(
           'Personnalisez votre suivi',
           style: TextStyle(
             fontSize: 30,
             fontWeight: FontWeight.w500,
-            color: AppColors.autoTextPrimary,
+            color: textPrimary,
           ),
         ),
         const SizedBox(height: 12),
-        const Text(
+        Text(
           'Optionnel - vous pourrez le faire plus tard',
           style: TextStyle(
             fontSize: 16,
-            color: AppColors.autoTextSecondary,
+            color: textSecondary,
           ),
         ),
         const SizedBox(height: 24),
@@ -125,22 +133,22 @@ class _Step4ProfileState extends State<Step4Profile> {
           keyboardType: TextInputType.number,
         ),
         const SizedBox(height: 20),
-        const Text(
+        Text(
           'Type d\'usage',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,
-            color: AppColors.autoTextPrimary,
+            color: textPrimary,
           ),
         ),
         const SizedBox(height: 8),
         Row(
           children: [
-            _buildUsageButton('Personnel'),
+            _buildUsageButton(context, 'Personnel'),
             const SizedBox(width: 8),
-            _buildUsageButton('Professionnel'),
+            _buildUsageButton(context, 'Professionnel'),
             const SizedBox(width: 8),
-            _buildUsageButton('Mixte'),
+            _buildUsageButton(context, 'Mixte'),
           ],
         ),
         const SizedBox(height: 20),
@@ -151,7 +159,7 @@ class _Step4ProfileState extends State<Step4Profile> {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.autoSurfaceElevated,
+              color: surfaceElevated,
               borderRadius: BorderRadius.circular(AppTheme.radiusCard),
             ),
             child: Row(
@@ -161,7 +169,7 @@ class _Step4ProfileState extends State<Step4Profile> {
                   width: 48,
                   height: 28,
                   decoration: BoxDecoration(
-                    color: _reminders ? AppColors.autoAccent : AppColors.autoBorder,
+                    color: _reminders ? AppColors.autoAccent : border,
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: AnimatedAlign(
@@ -179,7 +187,7 @@ class _Step4ProfileState extends State<Step4Profile> {
                   ),
                 ),
                 const SizedBox(width: 16),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -188,24 +196,24 @@ class _Step4ProfileState extends State<Step4Profile> {
                           Icon(
                             Icons.notifications,
                             size: 16,
-                            color: AppColors.autoTextSecondary,
+                            color: textSecondary,
                           ),
-                          SizedBox(width: 8),
+                          const SizedBox(width: 8),
                           Text(
                             'Rappels d\'entretien',
                             style: TextStyle(
                               fontSize: 16,
-                              color: AppColors.autoTextPrimary,
+                              color: textPrimary,
                             ),
                           ),
                         ],
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
                         'Soyez notifie des echeances importantes',
                         style: TextStyle(
                           fontSize: 14,
-                          color: AppColors.autoTextHint,
+                          color: textHint,
                         ),
                       ),
                     ],

@@ -22,24 +22,89 @@ class CustomButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textSecondary = AppTheme.textSecondary(context);
+    final textPrimary = AppTheme.textPrimary(context);
+    final surfaceElevated = AppTheme.surfaceElevated(context);
+    final border = AppTheme.border(context);
+
+    if (variant == ButtonVariant.primary) {
+      double verticalPadding;
+      double fontSize;
+
+      switch (size) {
+        case ButtonSize.sm:
+          verticalPadding = 8;
+          fontSize = 14;
+          break;
+        case ButtonSize.md:
+          verticalPadding = 12;
+          fontSize = 16;
+          break;
+        case ButtonSize.lg:
+          verticalPadding = 16;
+          fontSize = 16;
+          break;
+      }
+
+      final button = DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: onPressed == null
+              ? LinearGradient(
+                  colors: [
+                    AppColors.autoBorder,
+                    AppColors.autoBorder,
+                  ],
+                )
+              : AppTheme.ctaGradient,
+          borderRadius: BorderRadius.circular(AppTheme.radiusButton),
+        ),
+        child: ElevatedButton(
+          onPressed: onPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.transparent,
+            shadowColor: Colors.transparent,
+            foregroundColor: Colors.white,
+            disabledBackgroundColor: Colors.transparent,
+            elevation: 0,
+            padding: EdgeInsets.symmetric(
+              horizontal: 24,
+              vertical: verticalPadding,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppTheme.radiusButton),
+            ),
+          ),
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      );
+
+      return fullWidth ? SizedBox(width: double.infinity, child: button) : button;
+    }
+
     Color backgroundColor;
     Color textColor;
     BorderSide? borderSide;
 
     switch (variant) {
-      case ButtonVariant.primary:
-        backgroundColor = AppColors.autoAccent;
-        textColor = Colors.white;
-        borderSide = null;
-        break;
       case ButtonVariant.secondary:
-        backgroundColor = AppColors.autoSurfaceElevated;
-        textColor = AppColors.autoTextPrimary;
-        borderSide = const BorderSide(color: AppColors.autoBorder, width: 2);
+        backgroundColor = surfaceElevated;
+        textColor = textPrimary;
+        borderSide = BorderSide(color: border, width: 2);
         break;
       case ButtonVariant.ghost:
         backgroundColor = Colors.transparent;
-        textColor = AppColors.autoTextSecondary;
+        textColor = textSecondary;
+        borderSide = null;
+        break;
+      case ButtonVariant.primary:
+        backgroundColor = AppColors.autoAccent;
+        textColor = Colors.white;
         borderSide = null;
         break;
     }

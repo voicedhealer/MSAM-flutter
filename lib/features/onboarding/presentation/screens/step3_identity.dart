@@ -31,9 +31,32 @@ class _Step3IdentityState extends State<Step3Identity> {
   final _emailController = TextEditingController();
   String? _firstNameError;
   String? _emailError;
+  bool _isFormattingEmail = false;
 
   bool _validateEmail(String email) {
     return RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(email);
+  }
+
+  String _normalizeEmail(String value) {
+    return value.trim().toLowerCase().replaceAll(' ', '');
+  }
+
+  void _handleEmailChanged(String value) {
+    if (_isFormattingEmail) return;
+
+    final normalized = _normalizeEmail(value);
+    if (normalized != value) {
+      _isFormattingEmail = true;
+      _emailController.value = TextEditingValue(
+        text: normalized,
+        selection: TextSelection.collapsed(offset: normalized.length),
+      );
+      _isFormattingEmail = false;
+    }
+
+    if (_emailError != null) {
+      setState(() => _emailError = null);
+    }
   }
 
   void _handleSubmit() {
@@ -43,7 +66,7 @@ class _Step3IdentityState extends State<Step3Identity> {
     });
 
     final firstName = _firstNameController.text.trim();
-    final email = _emailController.text.trim();
+    final email = _normalizeEmail(_emailController.text);
 
     bool hasError = false;
 
@@ -61,12 +84,25 @@ class _Step3IdentityState extends State<Step3Identity> {
     }
 
     if (!hasError) {
+      _emailController.text = email;
+      _emailController.selection = TextSelection.collapsed(offset: email.length);
       widget.onNext(IdentityData(firstName: firstName, email: email));
     }
   }
 
+  void _onSocialLoginTap(String provider) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Connexion $provider bientot disponible'),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final textPrimary = AppTheme.textPrimary(context);
+    final textSecondary = AppTheme.textSecondary(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -88,20 +124,20 @@ class _Step3IdentityState extends State<Step3Identity> {
             ),
           ),
         ],
-        const Text(
+        Text(
           'Presque termine',
           style: TextStyle(
             fontSize: 30,
             fontWeight: FontWeight.w500,
-            color: AppColors.autoTextPrimary,
+            color: textPrimary,
           ),
         ),
         const SizedBox(height: 12),
-        const Text(
+        Text(
           'Creez votre compte en quelques secondes',
           style: TextStyle(
             fontSize: 16,
-            color: AppColors.autoTextSecondary,
+            color: textSecondary,
           ),
         ),
         const SizedBox(height: 24),
@@ -125,17 +161,60 @@ class _Step3IdentityState extends State<Step3Identity> {
           keyboardType: TextInputType.emailAddress,
           hint: 'Nous ne partagerons jamais votre email',
           error: _emailError,
-          onChanged: (_) {
-            if (_emailError != null) {
-              setState(() => _emailError = null);
-            }
-          },
+          onChanged: _handleEmailChanged,
         ),
         const SizedBox(height: 32),
         CustomButton(
           text: 'Creer mon compte',
           onPressed: _handleSubmit,
           fullWidth: true,
+        ),
+        const SizedBox(height: 18),
+        Row(
+          children: [
+            Expanded(
+              child: Container(height: 1, color: AppTheme.border(context)),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Text(
+                'ou en 1 clic',
+                style: TextStyle(
+                  color: AppTheme.textHint(context),
+                  fontSize: 12,
+                ),
+              ),
+            ),
+            Expanded(
+              child: Container(height: 1, color: AppTheme.border(context)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () => _onSocialLoginTap('Google'),
+                icon: const Icon(Icons.g_mobiledata, size: 18),
+                label: const Text('Google'),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: AppTheme.border(context)),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () => _onSocialLoginTap('Apple'),
+                icon: const Icon(Icons.apple, size: 18),
+                label: const Text('Apple'),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: AppTheme.border(context)),
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 12),
         CustomButton(

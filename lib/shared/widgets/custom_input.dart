@@ -29,23 +29,28 @@ class CustomInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final surfaceElevated = AppTheme.surfaceElevated(context);
+    final textPrimary = AppTheme.textPrimary(context);
+    final textHint = AppTheme.textHint(context);
+    final borderFocus = AppTheme.borderFocus(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (label != null) ...[
           Text(
             label!,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
-              color: AppColors.autoTextPrimary,
+              color: textPrimary,
             ),
           ),
           const SizedBox(height: 8),
         ],
         Container(
           decoration: BoxDecoration(
-            color: AppColors.autoSurfaceElevated,
+            color: surfaceElevated,
             borderRadius: BorderRadius.circular(AppTheme.radiusInput),
             border: Border.all(
               color: error != null ? Colors.red : Colors.transparent,
@@ -60,9 +65,9 @@ class CustomInput extends StatelessWidget {
             onChanged: onChanged,
             decoration: InputDecoration(
               hintText: placeholder,
-              hintStyle: const TextStyle(color: AppColors.autoTextHint),
+              hintStyle: TextStyle(color: textHint),
               prefixIcon: icon != null
-                  ? Icon(icon, color: AppColors.autoTextHint, size: 20)
+                  ? Icon(icon, color: textHint, size: 20)
                   : null,
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(
@@ -72,15 +77,15 @@ class CustomInput extends StatelessWidget {
               counterText: '',
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppTheme.radiusInput),
-                borderSide: const BorderSide(
-                  color: AppColors.autoBorderFocus,
+                borderSide: BorderSide(
+                  color: borderFocus,
                   width: 2,
                 ),
               ),
             ),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
-              color: AppColors.autoTextPrimary,
+              color: textPrimary,
             ),
           ),
         ),
@@ -88,9 +93,9 @@ class CustomInput extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             hint!,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
-              color: AppColors.autoTextHint,
+              color: textHint,
             ),
           ),
         ],

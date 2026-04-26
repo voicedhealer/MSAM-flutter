@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
 import '../../../../shared/widgets/custom_button.dart';
 import '../../../../shared/theme/app_theme.dart';
+import '../../../vehicle/domain/services/vehicle_image_catalog.dart';
 
 class VehicleData {
   final String brand;
   final String model;
   final int year;
+  final String catalogImageUrl;
+  final String? userImageUrl;
 
   VehicleData({
     required this.brand,
     required this.model,
     required this.year,
+    required this.catalogImageUrl,
+    this.userImageUrl,
   });
 }
 
@@ -49,9 +54,22 @@ class _Step2VehicleInfoState extends State<Step2VehicleInfo> {
         brand: 'Peugeot',
         model: '308 GT',
         year: 2023,
+        catalogImageUrl: VehicleImageCatalog.resolveImageUrl(
+          brand: 'Peugeot',
+          model: '308 GT',
+          year: 2023,
+        ),
       );
       _isLoading = false;
     });
+  }
+
+  void _onAddUserPhotoTap() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Ajout photo perso bientot disponible'),
+      ),
+    );
   }
 
   void _handleConfirm() {
@@ -60,7 +78,15 @@ class _Step2VehicleInfoState extends State<Step2VehicleInfo> {
     }
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(
+    BuildContext context,
+    String label,
+    String value,
+  ) {
+    final textPrimary = AppTheme.textPrimary(context);
+    final textSecondary = AppTheme.textSecondary(context);
+    final border = AppTheme.border(context);
+
     return Column(
       children: [
         Row(
@@ -68,16 +94,16 @@ class _Step2VehicleInfoState extends State<Step2VehicleInfo> {
           children: [
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: AppColors.autoTextSecondary,
+                color: textSecondary,
               ),
             ),
             Text(
               value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
-                color: AppColors.autoTextPrimary,
+                color: textPrimary,
               ),
             ),
           ],
@@ -85,7 +111,7 @@ class _Step2VehicleInfoState extends State<Step2VehicleInfo> {
         const SizedBox(height: 16),
         Container(
           height: 1,
-          color: AppColors.autoBorder,
+          color: border,
         ),
         const SizedBox(height: 16),
       ],
@@ -94,6 +120,11 @@ class _Step2VehicleInfoState extends State<Step2VehicleInfo> {
 
   @override
   Widget build(BuildContext context) {
+    final textPrimary = AppTheme.textPrimary(context);
+    final textSecondary = AppTheme.textSecondary(context);
+    final textHint = AppTheme.textHint(context);
+    final surfaceElevated = AppTheme.surfaceElevated(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -115,68 +146,103 @@ class _Step2VehicleInfoState extends State<Step2VehicleInfo> {
             ),
           ),
         ],
-        const Text(
+        Text(
           'Vehicule trouve',
           style: TextStyle(
             fontSize: 30,
             fontWeight: FontWeight.w500,
-            color: AppColors.autoTextPrimary,
+            color: textPrimary,
           ),
         ),
         const SizedBox(height: 12),
-        const Text(
+        Text(
           'Confirmez les informations detectees',
           style: TextStyle(
             fontSize: 16,
-            color: AppColors.autoTextSecondary,
+            color: textSecondary,
           ),
         ),
         const SizedBox(height: 24),
         if (_isLoading)
-          const Center(
+          Center(
             child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 48),
+              padding: const EdgeInsets.symmetric(vertical: 48),
               child: Column(
                 children: [
-                  CircularProgressIndicator(
+                  const CircularProgressIndicator(
                     color: AppColors.autoAccent,
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Text(
                     'Recherche en cours...',
-                    style: TextStyle(color: AppColors.autoTextHint),
+                    style: TextStyle(color: textHint),
                   ),
                 ],
               ),
             ),
           )
         else ...[
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: AspectRatio(
+              aspectRatio: 16 / 9,
+              child: Image.network(
+                _vehicleData!.catalogImageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  color: surfaceElevated,
+                  alignment: Alignment.center,
+                  child: Icon(
+                    Icons.directions_car,
+                    size: 48,
+                    color: textSecondary,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _onAddUserPhotoTap,
+                  icon: const Icon(Icons.add_a_photo_outlined, size: 18),
+                  label: const Text('Ajouter ma photo'),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: AppTheme.border(context)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: AppColors.autoSurfaceElevated,
+              color: surfaceElevated,
               borderRadius: BorderRadius.circular(AppTheme.radiusCard),
             ),
             child: Column(
               children: [
-                _buildInfoRow('Plaque', widget.plate),
-                _buildInfoRow('Marque', _vehicleData!.brand),
-                _buildInfoRow('Modele', _vehicleData!.model),
+                _buildInfoRow(context, 'Plaque', widget.plate),
+                _buildInfoRow(context, 'Marque', _vehicleData!.brand),
+                _buildInfoRow(context, 'Modele', _vehicleData!.model),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       'Annee',
                       style: TextStyle(
                         fontSize: 14,
-                        color: AppColors.autoTextSecondary,
+                        color: textSecondary,
                       ),
                     ),
                     Text(
                       '${_vehicleData!.year}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
-                        color: AppColors.autoTextPrimary,
+                        color: textPrimary,
                       ),
                     ),
                   ],
@@ -185,19 +251,19 @@ class _Step2VehicleInfoState extends State<Step2VehicleInfo> {
             ),
           ),
           const SizedBox(height: 16),
-          const Row(
+          Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.check_circle,
                 color: AppColors.autoSuccess,
                 size: 16,
               ),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Text(
                 'Informations verifiees automatiquement',
                 style: TextStyle(
                   fontSize: 14,
-                  color: AppColors.autoSuccess,
+                  color: textSecondary,
                 ),
               ),
             ],
