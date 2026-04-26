@@ -186,35 +186,57 @@ class _Step2VehicleInfoState extends State<Step2VehicleInfo> {
             borderRadius: BorderRadius.circular(16),
             child: AspectRatio(
               aspectRatio: 16 / 9,
-              child: Image.network(
-                _vehicleData!.catalogImageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  color: surfaceElevated,
-                  alignment: Alignment.center,
-                  child: Icon(
-                    Icons.directions_car,
-                    size: 48,
-                    color: textSecondary,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.network(
+                    _vehicleData!.catalogImageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      color: surfaceElevated,
+                      alignment: Alignment.center,
+                      child: Icon(
+                        Icons.directions_car,
+                        size: 48,
+                        color: textSecondary,
+                      ),
+                    ),
                   ),
-                ),
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.black.withValues(alpha: 0),
+                            Colors.black.withValues(alpha: 0.45),
+                          ],
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 20, 12, 12),
+                        child: Center(
+                          child: FilledButton.tonalIcon(
+                            onPressed: _onAddUserPhotoTap,
+                            icon: const Icon(Icons.add_a_photo_outlined, size: 18),
+                            label: const Text('Ajouter ma photo'),
+                            style: FilledButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              backgroundColor: Colors.white.withValues(alpha: 0.22),
+                              side: const BorderSide(color: Colors.white54),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _onAddUserPhotoTap,
-                  icon: const Icon(Icons.add_a_photo_outlined, size: 18),
-                  label: const Text('Ajouter ma photo'),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: AppTheme.border(context)),
-                  ),
-                ),
-              ),
-            ],
           ),
           const SizedBox(height: 16),
           Container(
