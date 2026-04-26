@@ -19,6 +19,7 @@ class QuickStats extends StatelessWidget {
       children: [
         Expanded(
           child: _buildStatCard(
+            context,
             icon: Icons.build_circle,
             value: '$totalMaintenance',
             label: 'Realises',
@@ -28,6 +29,7 @@ class QuickStats extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: _buildStatCard(
+            context,
             icon: Icons.euro,
             value: '${totalCost.toInt()}EUR',
             label: 'Depenses',
@@ -37,6 +39,7 @@ class QuickStats extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: _buildStatCard(
+            context,
             icon: Icons.event,
             value: '$upcomingCount',
             label: 'A venir',
@@ -47,7 +50,8 @@ class QuickStats extends StatelessWidget {
     );
   }
 
-  Widget _buildStatCard({
+  Widget _buildStatCard(
+    BuildContext context, {
     required IconData icon,
     required String value,
     required String label,
@@ -56,10 +60,10 @@ class QuickStats extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.autoSurface,
+        color: AppTheme.surfaceElevated(context),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.autoBorder,
+          color: AppTheme.border(context),
           width: 1,
         ),
       ),
@@ -69,18 +73,18 @@ class QuickStats extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: AppColors.autoTextPrimary,
+              color: AppTheme.textPrimary(context),
             ),
           ),
           const SizedBox(height: 2),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: AppColors.autoTextHint,
+              color: AppTheme.textHint(context),
             ),
           ),
         ],

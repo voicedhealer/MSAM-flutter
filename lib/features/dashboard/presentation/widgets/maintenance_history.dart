@@ -20,14 +20,14 @@ class MaintenanceHistory extends StatelessWidget {
               Icon(
                 Icons.history,
                 size: 64,
-                color: AppColors.autoTextHint.withValues(alpha: 0.3),
+                color: AppTheme.textHint(context).withValues(alpha: 0.3),
               ),
               const SizedBox(height: 16),
               Text(
                 'Aucun entretien pour le moment',
                 style: TextStyle(
                   fontSize: 16,
-                  color: AppColors.autoTextHint,
+                  color: AppTheme.textHint(context),
                 ),
               ),
             ],
@@ -61,7 +61,7 @@ class MaintenanceHistory extends StatelessWidget {
                     Container(
                       width: 2,
                       height: 60,
-                      color: AppColors.autoBorder,
+                      color: AppTheme.border(context),
                       margin: const EdgeInsets.symmetric(vertical: 4),
                     ),
                 ],
@@ -72,10 +72,10 @@ class MaintenanceHistory extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 16),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppColors.autoSurface,
+                    color: AppTheme.surfaceElevated(context),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: AppColors.autoBorder,
+                      color: AppTheme.border(context),
                       width: 1,
                     ),
                   ),
@@ -93,20 +93,20 @@ class MaintenanceHistory extends StatelessWidget {
                           Expanded(
                             child: Text(
                               maintenance.title,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
-                                color: AppColors.autoTextPrimary,
+                                color: AppTheme.textPrimary(context),
                               ),
                             ),
                           ),
                           if (maintenance.cost > 0)
                             Text(
                               '${maintenance.cost.toInt()}EUR',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
-                                color: AppColors.autoTextPrimary,
+                                color: AppTheme.textPrimary(context),
                               ),
                             ),
                         ],
@@ -117,28 +117,28 @@ class MaintenanceHistory extends StatelessWidget {
                           Icon(
                             Icons.calendar_today,
                             size: 14,
-                            color: AppColors.autoTextHint,
+                            color: AppTheme.textHint(context),
                           ),
                           const SizedBox(width: 6),
                           Text(
                             DateFormat('dd MMM yyyy', 'fr_FR').format(maintenance.date),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
-                              color: AppColors.autoTextSecondary,
+                              color: AppTheme.textSecondary(context),
                             ),
                           ),
                           const SizedBox(width: 16),
                           Icon(
                             Icons.speed,
                             size: 14,
-                            color: AppColors.autoTextHint,
+                            color: AppTheme.textHint(context),
                           ),
                           const SizedBox(width: 6),
                           Text(
                             '${_formatNumber(maintenance.mileage)} km',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
-                              color: AppColors.autoTextSecondary,
+                              color: AppTheme.textSecondary(context),
                             ),
                           ),
                         ],
@@ -148,7 +148,7 @@ class MaintenanceHistory extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: AppColors.autoSurfaceElevated,
+                            color: AppTheme.surface(context),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
@@ -156,15 +156,15 @@ class MaintenanceHistory extends StatelessWidget {
                               Icon(
                                 Icons.sticky_note_2,
                                 size: 16,
-                                color: AppColors.autoTextHint,
+                                color: AppTheme.textHint(context),
                               ),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   maintenance.notes!,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 14,
-                                    color: AppColors.autoTextSecondary,
+                                    color: AppTheme.textSecondary(context),
                                   ),
                                 ),
                               ),

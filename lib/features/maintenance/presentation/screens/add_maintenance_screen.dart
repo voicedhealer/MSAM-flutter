@@ -49,7 +49,7 @@ class _AddMaintenanceScreenState extends State<AddMaintenanceScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
               primary: AppColors.autoAccent,
             ),
           ),
@@ -90,18 +90,18 @@ class _AddMaintenanceScreenState extends State<AddMaintenanceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.autoSurface,
+      backgroundColor: AppTheme.surface(context),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: AppColors.autoTextPrimary),
+          icon: Icon(Icons.close, color: AppTheme.textPrimary(context)),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Nouvel entretien',
           style: TextStyle(
-            color: AppColors.autoTextPrimary,
+            color: AppTheme.textPrimary(context),
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -111,12 +111,12 @@ class _AddMaintenanceScreenState extends State<AddMaintenanceScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Type d\'entretien',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
-                color: AppColors.autoTextPrimary,
+                color: AppTheme.textPrimary(context),
               ),
             ),
             const SizedBox(height: 12),
@@ -143,9 +143,9 @@ class _AddMaintenanceScreenState extends State<AddMaintenanceScreen> {
                     decoration: BoxDecoration(
                       color: isSelected
                           ? color.withValues(alpha: 0.1)
-                          : AppColors.autoSurfaceElevated,
+                          : AppTheme.surfaceElevated(context),
                       border: Border.all(
-                        color: isSelected ? color : AppColors.autoBorder,
+                        color: isSelected ? color : AppTheme.border(context),
                         width: isSelected ? 2 : 1,
                       ),
                       borderRadius: BorderRadius.circular(12),
@@ -156,7 +156,7 @@ class _AddMaintenanceScreenState extends State<AddMaintenanceScreen> {
                         Icon(
                           icon,
                           size: 18,
-                          color: isSelected ? color : AppColors.autoTextSecondary,
+                          color: isSelected ? color : AppTheme.textSecondary(context),
                         ),
                         const SizedBox(width: 8),
                         Text(
@@ -164,7 +164,7 @@ class _AddMaintenanceScreenState extends State<AddMaintenanceScreen> {
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                            color: isSelected ? color : AppColors.autoTextSecondary,
+                            color: isSelected ? color : AppTheme.textSecondary(context),
                           ),
                         ),
                       ],
@@ -185,29 +185,29 @@ class _AddMaintenanceScreenState extends State<AddMaintenanceScreen> {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.autoSurfaceElevated,
+                  color: AppTheme.surfaceElevated(context),
                   borderRadius: BorderRadius.circular(AppTheme.radiusInput),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.calendar_today, color: AppColors.autoTextHint, size: 20),
+                    Icon(Icons.calendar_today, color: AppTheme.textHint(context), size: 20),
                     const SizedBox(width: 12),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Date',
                           style: TextStyle(
                             fontSize: 12,
-                            color: AppColors.autoTextHint,
+                            color: AppTheme.textHint(context),
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           DateFormat('dd MMMM yyyy', 'fr_FR').format(_selectedDate),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
-                            color: AppColors.autoTextPrimary,
+                            color: AppTheme.textPrimary(context),
                           ),
                         ),
                       ],

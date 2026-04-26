@@ -190,7 +190,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _sectionTitle(String title, Color color) {
+  Widget _sectionTitle(BuildContext context, String title, Color color) {
     return Row(
       children: [
         Container(
@@ -204,37 +204,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
         const SizedBox(width: 12),
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
-            color: AppColors.autoTextPrimary,
+            color: AppTheme.textPrimary(context),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildAISuggestions() {
+  Widget _buildAISuggestions(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.autoSurface,
+          color: AppTheme.surfaceElevated(context),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.autoBorder),
+          border: Border.all(color: AppTheme.border(context)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                const Text(
+                Text(
                   'Suggestions IA',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.autoTextPrimary,
+                    color: AppTheme.textPrimary(context),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -257,11 +257,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 12),
             if (_aiSuggestions.isEmpty)
-              const Text(
+              Text(
                 'Aucune suggestion prioritaire pour le moment.',
                 style: TextStyle(
                   fontSize: 14,
-                  color: AppColors.autoTextSecondary,
+                  color: AppTheme.textSecondary(context),
                 ),
               )
             else
@@ -280,9 +280,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Expanded(
                         child: Text(
                           '${item.title} a prevoir dans $days jours',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
-                            color: AppColors.autoTextPrimary,
+                            color: AppTheme.textPrimary(context),
                           ),
                         ),
                       ),
@@ -296,7 +296,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildHomeTab() {
+  Widget _buildHomeTab(BuildContext context) {
     return CustomScrollView(
       slivers: [
         SliverToBoxAdapter(
@@ -305,12 +305,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Mon Suivi Auto Moto',
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.autoTextPrimary,
+                    color: AppTheme.textPrimary(context),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -318,7 +318,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   'Carnet d\'entretien digital',
                   style: TextStyle(
                     fontSize: 16,
-                    color: AppColors.autoTextHint,
+                    color: AppTheme.textHint(context),
                   ),
                 ),
               ],
@@ -344,13 +344,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         const SliverToBoxAdapter(child: SizedBox(height: 20)),
         const SliverToBoxAdapter(child: SizedBox(height: 8)),
-        SliverToBoxAdapter(child: _buildAISuggestions()),
+        SliverToBoxAdapter(child: _buildAISuggestions(context)),
         const SliverToBoxAdapter(child: SizedBox(height: 24)),
         if (_upcomingMaintenance.isNotEmpty) ...[
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: _sectionTitle('A venir', AppColors.autoAccent),
+              child: _sectionTitle(context, 'A venir', AppColors.autoAccent),
             ),
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 12)),
@@ -362,7 +362,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: _sectionTitle('Historique', AppColors.autoSuccess),
+            child: _sectionTitle(context, 'Historique', AppColors.autoSuccess),
           ),
         ),
         const SliverToBoxAdapter(child: SizedBox(height: 12)),
@@ -374,13 +374,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _statCard(String title, String value, String subtitle, IconData icon) {
+  Widget _statCard(
+    BuildContext context,
+    String title,
+    String value,
+    String subtitle,
+    IconData icon,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.autoSurface,
+        color: AppTheme.surfaceElevated(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.autoBorder),
+        border: Border.all(color: AppTheme.border(context)),
       ),
       child: Row(
         children: [
@@ -400,26 +406,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: AppColors.autoTextHint,
+                    color: AppTheme.textHint(context),
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   value,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.autoTextPrimary,
+                    color: AppTheme.textPrimary(context),
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.autoTextSecondary,
+                    color: AppTheme.textSecondary(context),
                   ),
                 ),
               ],
@@ -430,13 +436,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildTypeDistribution() {
+  Widget _buildTypeDistribution(BuildContext context) {
     if (_maintenanceByType.isEmpty) {
-      return const Text(
+      return Text(
         'Pas encore assez de donnees pour afficher la repartition.',
         style: TextStyle(
           fontSize: 14,
-          color: AppColors.autoTextSecondary,
+          color: AppTheme.textSecondary(context),
         ),
       );
     }
@@ -453,9 +459,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 width: 110,
                 child: Text(
                   entry.key,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: AppColors.autoTextPrimary,
+                    color: AppTheme.textPrimary(context),
                   ),
                 ),
               ),
@@ -465,7 +471,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: LinearProgressIndicator(
                     value: entry.value / total,
                     minHeight: 10,
-                    backgroundColor: AppColors.autoBorder,
+                    backgroundColor: AppTheme.border(context),
                     valueColor:
                         const AlwaysStoppedAnimation<Color>(AppColors.autoAccent),
                   ),
@@ -474,9 +480,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(width: 10),
               Text(
                 '$percentage%',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: AppColors.autoTextSecondary,
+                  color: AppTheme.textSecondary(context),
                 ),
               ),
             ],
@@ -486,30 +492,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildStatsTab() {
+  Widget _buildStatsTab(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Statistiques',
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w600,
-              color: AppColors.autoTextPrimary,
+              color: AppTheme.textPrimary(context),
             ),
           ),
           const SizedBox(height: 6),
-          const Text(
+          Text(
             'Vue des couts et tendances d\'entretien',
             style: TextStyle(
               fontSize: 14,
-              color: AppColors.autoTextSecondary,
+              color: AppTheme.textSecondary(context),
             ),
           ),
           const SizedBox(height: 20),
           _statCard(
+            context,
             'Cout total',
             '${_totalCost.toStringAsFixed(0)}EUR',
             '${_completedMaintenance.length} entretiens realises',
@@ -517,29 +524,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           const SizedBox(height: 12),
           _statCard(
+            context,
             'Cout / km',
             '${_costPerKm.toStringAsFixed(4)} EUR/km',
             'Moyenne: ${_averageCost.toStringAsFixed(0)}EUR par entretien',
             Icons.speed,
           ),
           const SizedBox(height: 24),
-          const Text(
+          Text(
             'Repartition par type',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: AppColors.autoTextPrimary,
+              color: AppTheme.textPrimary(context),
             ),
           ),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.autoSurface,
+              color: AppTheme.surfaceElevated(context),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.autoBorder),
+              border: Border.all(color: AppTheme.border(context)),
             ),
-            child: _buildTypeDistribution(),
+            child: _buildTypeDistribution(context),
           ),
         ],
       ),
@@ -547,6 +555,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _profileItem(
+    BuildContext context,
     IconData icon,
     String title,
     String subtitle, {
@@ -555,9 +564,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: AppColors.autoSurface,
+        color: AppTheme.surfaceElevated(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.autoBorder),
+        border: Border.all(color: AppTheme.border(context)),
       ),
       child: InkWell(
         onTap: onTap,
@@ -566,7 +575,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           padding: const EdgeInsets.all(14),
           child: Row(
             children: [
-              Icon(icon, color: AppColors.autoTextSecondary),
+              Icon(icon, color: AppTheme.textSecondary(context)),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -574,24 +583,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.autoTextPrimary,
+                        color: AppTheme.textPrimary(context),
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
-                        color: AppColors.autoTextSecondary,
+                        color: AppTheme.textSecondary(context),
                       ),
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, color: AppColors.autoTextHint),
+              Icon(Icons.chevron_right, color: AppTheme.textHint(context)),
             ],
           ),
         ),
@@ -599,18 +608,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildProfileTab() {
+  Widget _buildProfileTab(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Profil',
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w600,
-              color: AppColors.autoTextPrimary,
+              color: AppTheme.textPrimary(context),
             ),
           ),
           const SizedBox(height: 20),
@@ -618,48 +627,61 @@ class _DashboardScreenState extends State<DashboardScreen> {
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.autoSurface,
+              color: AppTheme.surfaceElevated(context),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.autoBorder),
+              border: Border.all(color: AppTheme.border(context)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Infos vehicule',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.autoTextPrimary,
+                    color: AppTheme.textPrimary(context),
                   ),
                 ),
                 const SizedBox(height: 10),
-                Text('Plaque: ${widget.vehicle.plate}'),
-                Text('Modele: ${widget.vehicle.brand} ${widget.vehicle.model}'),
-                Text('Annee: ${widget.vehicle.year}'),
-                Text('Kilometrage: ${widget.vehicle.currentMileage} km'),
+                Text(
+                  'Plaque: ${widget.vehicle.plate}',
+                  style: TextStyle(color: AppTheme.textPrimary(context)),
+                ),
+                Text(
+                  'Modele: ${widget.vehicle.brand} ${widget.vehicle.model}',
+                  style: TextStyle(color: AppTheme.textSecondary(context)),
+                ),
+                Text(
+                  'Annee: ${widget.vehicle.year}',
+                  style: TextStyle(color: AppTheme.textSecondary(context)),
+                ),
+                Text(
+                  'Kilometrage: ${widget.vehicle.currentMileage} km',
+                  style: TextStyle(color: AppTheme.textSecondary(context)),
+                ),
               ],
             ),
           ),
           const SizedBox(height: 20),
-          const Text(
+          Text(
             'Parametres',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: AppColors.autoTextPrimary,
+              color: AppTheme.textPrimary(context),
             ),
           ),
           const SizedBox(height: 10),
           _profileItem(
+            context,
             Icons.palette_outlined,
             'Apparence',
             'Clair, Sombre ou Systeme',
             onTap: _showThemeModeSheet,
           ),
-          _profileItem(Icons.notifications, 'Notifications', 'Rappels et alertes'),
-          _profileItem(Icons.picture_as_pdf, 'Export PDF', 'Exporter le carnet'),
-          _profileItem(Icons.lock, 'Confidentialite', 'Droits et donnees'),
+          _profileItem(context, Icons.notifications, 'Notifications', 'Rappels et alertes'),
+          _profileItem(context, Icons.picture_as_pdf, 'Export PDF', 'Exporter le carnet'),
+          _profileItem(context, Icons.lock, 'Confidentialite', 'Droits et donnees'),
         ],
       ),
     );
@@ -668,18 +690,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final tabViews = [
-      _buildHomeTab(),
-      _buildStatsTab(),
-      _buildProfileTab(),
+      _buildHomeTab(context),
+      _buildStatsTab(context),
+      _buildProfileTab(context),
     ];
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          color: AppColors.autoSurface,
-        ),
-        child: SafeArea(child: tabViews[_selectedTabIndex]),
-      ),
+      backgroundColor: AppTheme.surface(context),
+      body: SafeArea(child: tabViews[_selectedTabIndex]),
       floatingActionButton: _selectedTabIndex == 0
           ? FloatingActionButton.extended(
               onPressed: _addMaintenance,

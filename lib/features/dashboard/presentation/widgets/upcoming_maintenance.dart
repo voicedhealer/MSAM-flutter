@@ -22,10 +22,10 @@ class UpcomingMaintenance extends StatelessWidget {
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.autoSurface,
+              color: AppTheme.surfaceElevated(context),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isUrgent ? AppColors.autoWarning : AppColors.autoBorder,
+                color: isUrgent ? AppColors.autoWarning : AppTheme.border(context),
                 width: isUrgent ? 2 : 1,
               ),
             ),
@@ -50,18 +50,18 @@ class UpcomingMaintenance extends StatelessWidget {
                     children: [
                       Text(
                         maintenance.title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.autoTextPrimary,
+                          color: AppTheme.textPrimary(context),
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         DateFormat('dd MMM yyyy', 'fr_FR').format(maintenance.date),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
-                          color: AppColors.autoTextSecondary,
+                          color: AppTheme.textSecondary(context),
                         ),
                       ),
                     ],
