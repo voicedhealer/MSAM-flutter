@@ -7,6 +7,7 @@ import '../widgets/quick_stats.dart';
 import '../widgets/upcoming_maintenance.dart';
 import '../widgets/maintenance_history.dart';
 import '../../../maintenance/presentation/screens/add_maintenance_screen.dart';
+import '../../../deals/presentation/screens/deals_tab.dart';
 
 class DashboardScreen extends StatefulWidget {
   final Vehicle vehicle;
@@ -692,6 +693,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final tabViews = [
       _buildHomeTab(context),
       _buildStatsTab(context),
+      const DealsTab(),
       _buildProfileTab(context),
     ];
 
@@ -728,6 +730,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             icon: Icon(Icons.bar_chart_outlined),
             selectedIcon: Icon(Icons.bar_chart),
             label: 'Stats',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.local_offer_outlined),
+            selectedIcon: Icon(Icons.local_offer),
+            label: 'Bons plans',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),

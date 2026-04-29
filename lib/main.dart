@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'core/config/env.dart';
 import 'shared/theme/app_theme.dart';
 import 'shared/widgets/progress_bar.dart';
 import 'features/onboarding/presentation/screens/step1_license_plate.dart';
@@ -11,7 +13,14 @@ import 'features/onboarding/presentation/screens/step4_profile.dart';
 import 'features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'features/vehicle/domain/models/vehicle.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  if (Env.supabaseUrl.isNotEmpty && Env.supabaseAnonKey.isNotEmpty) {
+    await Supabase.initialize(
+      url: Env.supabaseUrl,
+      anonKey: Env.supabaseAnonKey,
+    );
+  }
   runApp(const MyApp());
 }
 
